@@ -108,7 +108,7 @@ pub fn spiral(filename: []const u8, output_file: []const u8) !void {
             if (penstate == 1) {
                 to_x = x;
                 to_y = y;
-                //append close segment
+                try appendCloseSegment(writer, to_x, to_y, radius, color, nibsize, segment_iterations);
             }
             radius -= linespacing;
             level_id += 1;
@@ -126,7 +126,8 @@ pub fn spiral(filename: []const u8, output_file: []const u8) !void {
             if (newstate != penstate) {
                 from_x = x;
                 from_y = y;
-                //append open segment
+                try appendOpenSegment(writer, from_x, from_y);
+                segment_iterations = 0;
             }
             penstate = newstate;
         } else {
@@ -134,14 +135,13 @@ pub fn spiral(filename: []const u8, output_file: []const u8) !void {
             if (newstate != penstate) {
                 to_x = x;
                 to_y = y;
-                //append close segment
+                try appendCloseSegment(writer, to_x, to_y, radius, color, nibsize, segment_iterations);
             }
             penstate = newstate;
         }
         i += 1;
         segment_iterations += 1;
     }
-    //append closed
 
     var buf: [80_000:0]u8 = undefined;
     @memset(&buf, 0);
@@ -152,6 +152,17 @@ pub fn spiral(filename: []const u8, output_file: []const u8) !void {
         color,
     });
     try writer.print("{s}</g></svg>\n", .{sig});
+}
+
+inline fn appendOpenSegment(writer: anytype, fx: f32, fy: f32) !void {
+    const svg_segment_format = "<path d=\"M{d:0.2},{d:0.2} ";
+    try writer.print(svg_segment_format, .{ fx, fy });
+}
+inline fn appendCloseSegment(writer: anytype, tx: f32, ty: f32, radius: f32, color: []const u8, nib_size_mm: f32, segment_iterations: usize) !void {
+    const svg_segment_format = "A{d:0.2},{d:0.2} 0 {d:0.0},{d:0.0} {d:0.2},{d:0.2}\" fill=\"none\" stroke=\"{s}\" stroke-width=\"{d:0.2}\" stroke-linecap=\"round\" />\n";
+    const dir = 1;
+    const long_way_home: usize = if (segment_iterations > 1800) 1 else 0;
+    try writer.print(svg_segment_format, .{ radius, radius, long_way_home, dir, tx, ty, color, nib_size_mm });
 }
 
 pub fn crossed(filename: []const u8, output_file: []const u8) !void {
@@ -262,6 +273,7 @@ pub fn crossed(filename: []const u8, output_file: []const u8) !void {
     });
     try writer.print("{s}</g></svg>\n", .{sig});
 }
+
 inline fn appendsegment(writer: anytype, fx: f32, fy: f32, tx: f32, ty: f32, radius: f32, color: []const u8, nibsize_mm: f32, dir: i16) !void {
     // std.debug.print("appending.. ({},{})=>({},{})\n", .{ fx, fy, tx, ty });
     const svg_segment_format =

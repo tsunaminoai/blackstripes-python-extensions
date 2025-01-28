@@ -88,6 +88,7 @@ pub fn build(b: *std.Build) !void {
     exe.linkLibrary(lib_sketchy);
     exe.addIncludePath(b.path("./src/lib/lodepng"));
     exe.addIncludePath(b.path("./src/lib/sketchy"));
+    exe.addIncludePath(b.path("./src/blackstripes"));
     b.installArtifact(exe);
 
     const runexe = b.addRunArtifact(exe);

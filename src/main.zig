@@ -10,6 +10,7 @@ pub fn main() !void {
 
     const alloc = gpa.allocator();
     var options = try std.process.ArgIterator.initWithAllocator(alloc);
+    defer options.deinit();
     var filename: ?[]const u8 = null;
     var output: ?[]const u8 = null;
     while (options.next()) |arg| {
@@ -19,14 +20,19 @@ pub fn main() !void {
         }
         if (std.mem.eql(u8, arg, "-o")) {
             output = options.next() orelse return error.InvalidArg;
-            std.debug.print("Ouput file: {s}\n", .{output.?});
+            std.debug.print("Ouput file(s): {s}\n", .{output.?});
         }
     }
     if (filename == null or output == null) return error.InvalidArg;
-    // try sketch(filename.?, output.?);
-    try spiral(filename.?, output.?);
+    var buf: [1024]u8 = undefined;
+    var output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "sketch" });
+    try sketch(filename.?, output_file);
 
-    options.deinit();
+    output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "spiral" });
+    try spiral(filename.?, output_file);
+
+    output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "crossed" });
+    try crossed(filename.?, output_file);
 }
 
 pub fn spiral(filename: []const u8, output_file: []const u8) !void {

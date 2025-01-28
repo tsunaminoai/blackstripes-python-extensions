@@ -91,6 +91,9 @@ pub fn build(b: *std.Build) !void {
     b.installArtifact(exe);
 
     const runexe = b.addRunArtifact(exe);
+    if (b.args) |a| {
+        runexe.addArgs(a);
+    }
     const runstep = b.step("run", "Run sketchy");
     runstep.dependOn(&runexe.step);
 }

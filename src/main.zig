@@ -53,7 +53,7 @@ pub fn spiral(filename: []const u8, output_file: []const u8) !void {
     const scale = 1.0;
     const sigTransX = 0.0;
     const sigTransY = 0.0;
-    const sigScale = 1.0;
+    const sigScale = 0.0;
 
     const level0 = 50;
     const level1 = 100;
@@ -181,7 +181,7 @@ pub fn crossed(filename: []const u8, output_file: []const u8) !void {
     const typ = 1;
     const sigTransX = 0.0;
     const sigTransY = 0.0;
-    const sigScale = 1.0;
+    const sigScale = 0.0;
 
     const img = sketchy.SketchyImage_allocWithFileName(filename.ptr);
     if (img == null) {
@@ -306,7 +306,7 @@ pub fn sketch(filename: []const u8, output_file: []const u8) !void {
     _ = sigTransX; // autofix
     const sigTransY = 0.0;
     _ = sigTransY; // autofix
-    const sigScale = 1.0;
+    const sigScale = 0.0;
     const color = "black";
     const sig = "Signature";
 

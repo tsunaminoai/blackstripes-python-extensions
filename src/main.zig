@@ -61,40 +61,27 @@ pub fn main() !void {
     if (res.args.help != 0)
         return clap.usage(std.io.getStdErr().writer(), clap.Help, &params);
     const filter = if (res.args.filter) |f| f else Filter.all;
-    if (res.args.input) |s|
-        std.debug.print("--input = {any}\n", .{s});
+    const input = if (res.args.input) |s| s else return error.NoInputFile;
+    const output = if (res.args.output) |s| s else return error.NoOutputFile;
 
     std.debug.print("Filter: {s}\n", .{@tagName(filter)});
 
-    var filename: ?[]const u8 = null;
-    var output: ?[]const u8 = null;
-    while (options.next()) |arg| {
-        if (std.mem.eql(u8, arg, "-i")) {
-            filename = options.next() orelse return error.InvalidArg;
-            std.debug.print("Input image: {s}\n", .{filename.?});
-        }
-        if (std.mem.eql(u8, arg, "-o")) {
-            output = options.next() orelse return error.InvalidArg;
-            std.debug.print("Ouput file(s): {s}\n", .{output.?});
-        }
-    }
-    if (filename == null or output == null) return error.InvalidArg;
     var buf: [1024]u8 = undefined;
     var output_file: []const u8 = undefined;
 
     if (filter == .all or filter == .sketchy) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "sketch" });
-        try sketch.sketch(filename.?, output_file);
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "sketch" });
+        try sketch.sketch(input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (filter == .all or filter == .spiral) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "spiral" });
-        try spiral.spiral(filename.?, output_file);
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "spiral" });
+        try spiral.spiral(input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (filter == .all or filter == .crossed) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output.?, "crossed" });
-        try crossed.crossed(filename.?, output_file);
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "crossed" });
+        try crossed.crossed(input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
 }

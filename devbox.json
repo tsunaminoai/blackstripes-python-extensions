@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.6/.schema/devbox.schema.json",
   "packages": {
-    "zig":       "0.13.0",
     "zls":       "latest",
     "watchexec": "latest",
     "python312": {
       "version": "latest",
     },
-    "python312Packages.distutils": "latest",
+    "python312Packages.distutils":  "latest",
+    "github:mitchellh/zig-overlay": "",
   },
   "shell": {
     "init_hook": [

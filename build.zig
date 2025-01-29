@@ -7,16 +7,20 @@ const math = std.math;
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
-    const mode = b.standardOptimizeOption(.{});
+    const optimize = b.standardOptimizeOption(.{});
     const allocator = b.allocator;
     _ = allocator; // autofix
 
     const clap = b.dependency("clap", .{});
+    // const zigimg_dependency = b.dependency("zigimg", .{
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
     const lib_lodepng = b.addSharedLibrary(.{
         .name = "lodepng",
         .target = target,
-        .optimize = mode,
+        .optimize = optimize,
         .link_libc = true,
     });
     lib_lodepng.addCSourceFile(.{
@@ -38,7 +42,7 @@ pub fn build(b: *std.Build) !void {
     const lib_sketchy = b.addSharedLibrary(.{
         .name = "sketchy",
         .target = target,
-        .optimize = mode,
+        .optimize = optimize,
         .link_libc = true,
         .root_source_file = b.path("./src/root.zig"),
     });
@@ -64,7 +68,7 @@ pub fn build(b: *std.Build) !void {
         const lib = b.addSharedLibrary(.{
             .name = l ++ ".cpython-312-" ++ @tagName(builtin.target.cpu.arch) ++ "-" ++ @tagName(builtin.target.os.tag),
             .target = target,
-            .optimize = mode,
+            .optimize = optimize,
         });
         lib.addCSourceFile(.{
             .file = b.path("./src/blackstripes/" ++ l ++ ".c"),
@@ -82,7 +86,7 @@ pub fn build(b: *std.Build) !void {
     const exe = b.addExecutable(.{
         .name = "sketchy",
         .target = target,
-        .optimize = mode,
+        .optimize = optimize,
         .link_libc = true,
         .root_source_file = b.path("./src/main.zig"),
     });
@@ -93,6 +97,7 @@ pub fn build(b: *std.Build) !void {
     exe.addIncludePath(b.path("./src/blackstripes"));
     exe.root_module.addImport("clap", clap.module("clap"));
 
+    // exe.root_module.addImport("zigimg", zigimg_dependency.module("zigimg"));
     b.installArtifact(exe);
 
     const runexe = b.addRunArtifact(exe);

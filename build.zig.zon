@@ -27,6 +27,10 @@
             .url = "https://github.com/Hejsil/zig-clap/archive/refs/tags/0.9.1.tar.gz",
             .hash = "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b",
         },
+        .zigimg = .{
+            .url = "https://github.com/zigimg/zigimg/archive/256b64736b8044dbeb7798a2a3e318d51e5147d7.zip",
+            .hash = "12202524eeb9e7425c2b61e470f75e6240f8eda8307f5ea1e7e8359f76a7be02c858",
+        },
     },
     .paths = .{
         "build.zig",

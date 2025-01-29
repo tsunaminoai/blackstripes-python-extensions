@@ -20,6 +20,7 @@ pub fn main() !void {
         \\-i, --input <file>      An option parameter, which takes a value.
         \\-o, --output <file>     An option parameter, which takes a value.
         \\--linewidth <float>    An option parameter, which takes a value.
+        \\--threshold <float>    An option parameter, which takes a value.
         \\--nibsize <float>      An option parameter, which takes a value.
         \\--width <float>        An option parameter, which takes a value.
         // \\-c, --color <hex_code> An option parameter, which takes a value.
@@ -74,6 +75,7 @@ pub fn main() !void {
     opts.rounding = if (res.args.round == 1) true else opts.rounding;
     opts.internal_line_size = if (res.args.internallinesize) |f| f else opts.internal_line_size;
     opts.max_line_length = if (res.args.maxlinelength) |f| f else opts.max_line_length;
+    opts.threshold = if (res.args.threshold) |f| f else opts.threshold;
     var levels: []f32 = undefined;
     if (res.args.levels.len > 0) {
         levels = try alloc.alloc(f32, res.args.levels.len);

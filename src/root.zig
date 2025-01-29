@@ -17,6 +17,7 @@ pub const FilterOptions = struct {
         y: f32 = 0.0,
         scale: f32 = 0.0,
     } = .{},
+    threshold: ?f32 = null,
     rounding: bool = false,
     internal_line_size: f32 = 1.0,
     max_line_length: f32 = 50.0,

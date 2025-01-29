@@ -21,8 +21,6 @@ pub fn sketch(opts: FilterOptions) !void {
 
     // std.debug.print("Loaded image {any}\n", .{obj.*.type.*});
 
-    const nibsize = opts.nibsize_mm;
-    _ = nibsize; // autofix
     const linesize = opts.linewidth;
     const maxLineLength = opts.max_line_length;
     const scale = opts.scale;
@@ -32,12 +30,12 @@ pub fn sketch(opts: FilterOptions) !void {
     const color = opts.color;
 
     sketchy.SketchyImage_setNibSize(obj, @intFromFloat(linesize));
-    const avg = sketchy.SketchyImage_getAvgBrightness(obj); // 0-255
-    var threshold = sketchy.SketchyImage_getBrightness(obj);
-    // std.debug.print("Avg Brightness: {}\nThreshold:{}\n", .{ avg, threshold });
-    if (avg < 128) {
-        threshold = @intFromFloat(@as(f32, @floatFromInt(threshold)) * (128.0 / avg));
-    }
+    const avg = opts.threshold orelse sketchy.SketchyImage_getAvgBrightness(obj); // 0-255
+    var threshold: f32 = @floatFromInt(sketchy.SketchyImage_getBrightness(obj));
+    threshold = threshold * (128.0 / avg);
+
+    std.debug.print("Avg Brightness: {}\nThreshold:{}\n", .{ avg, threshold });
+
     var outputBrightness = sketchy.SketchyImage_getOutputBrightness(obj);
     const width = sketchy.SketchyImage_getCanvasWidth(obj);
     const height = sketchy.SketchyImage_getCanvasHeight(obj);
@@ -76,7 +74,7 @@ pub fn sketch(opts: FilterOptions) !void {
     var random = std.rand.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
     var rand = random.random();
 
-    while (outputBrightness > threshold) {
+    while (@as(f32, @floatFromInt(outputBrightness)) > threshold) {
         const r = 10 + @mod(rand.int(i32), @as(i32, @intFromFloat(maxLineLength)));
         const p: *sketchy.Point = sketchy.SketchyImage_bestPointOfNDestinationsFromXY2(
             obj,
@@ -90,7 +88,7 @@ pub fn sketch(opts: FilterOptions) !void {
         x = p.x;
         y = p.y;
     }
-    try writer.writeAll("\" style=\"fill:none;stroke:black;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;\"/>");
+    try writer.print("\" style=\"fill:none;stroke:black;stroke-width:{d:0.2};stroke-linecap:round;stroke-linejoin:round;\"/>", .{opts.nibsize_mm});
 
     var buf: [80_000:0]u8 = undefined;
     @memset(&buf, 0);

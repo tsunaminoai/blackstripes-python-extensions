@@ -7,8 +7,11 @@ const root = @import("root.zig");
 const sketchy = root.sketchy;
 const svg_formatstring = root.svg_formatstring;
 const signature = root.signature;
+const FilterOptions = root.FilterOptions;
 
-pub fn sketch(filename: []const u8, output_file: []const u8) !void {
+pub fn sketch(opts: FilterOptions) !void {
+    const filename = opts.input;
+    const output_file = opts.output;
     const obj = sketchy.SketchyImage_allocWithFileName(filename.ptr);
     if (obj == null) {
         std.debug.print("Failed to load image\n", .{});

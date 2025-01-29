@@ -10,8 +10,11 @@ const svg_formatstring = root.svg_formatstring;
 const signature = root.signature;
 const coords_large = @import("crossed.zig").large;
 const coords_xlarge = @import("crossed.zig").xlarge;
+const FilterOptions = root.FilterOptions;
 
-pub fn crossed(filename: []const u8, output_file: []const u8) !void {
+pub fn crossed(opts: FilterOptions) !void {
+    const filename = opts.input;
+    const output_file = opts.output;
     const nibsize = 1;
     const scale = 1.0;
     const level0 = 50;

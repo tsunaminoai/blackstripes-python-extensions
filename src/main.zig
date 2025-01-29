@@ -72,17 +72,22 @@ pub fn main() !void {
 
     if (opts.filter == .all or opts.filter == .sketchy) {
         output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "sketch" });
-        try sketch.sketch(opts.input, output_file);
+        opts.output = output_file;
+
+        try sketch.sketch(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (opts.filter == .all or opts.filter == .spiral) {
         output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "spiral" });
-        try spiral.spiral(opts.input, output_file);
+        opts.output = output_file;
+
+        try spiral.spiral(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (opts.filter == .all or opts.filter == .crossed) {
         output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "crossed" });
-        try crossed.crossed(opts.input, output_file);
+        opts.output = output_file;
+        try crossed.crossed(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
 }

@@ -3,12 +3,16 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+
 const root = @import("root.zig");
 const sketchy = root.sketchy;
 const svg_formatstring = root.svg_formatstring;
 const signature = root.signature;
+const FilterOptions = root.FilterOptions;
 
-pub fn spiral(filename: []const u8, output_file: []const u8) !void {
+pub fn spiral(opts: FilterOptions) !void {
+    const filename = opts.input;
+    const output_file = opts.output;
     const img = sketchy.SketchyImage_allocWithFileName(filename.ptr);
     if (img == null) {
         std.debug.print("Failed to load image\n", .{});

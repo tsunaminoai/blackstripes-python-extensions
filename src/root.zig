@@ -2,6 +2,34 @@ const std = @import("std");
 const c = @cImport(@cInclude("SketchyImage.h"));
 pub const sketchy = c;
 
+pub const FilterOptions = struct {
+    filter: FilterType = .all,
+    input: []const u8,
+    output: []const u8,
+    linewidth: f32 = 1.0,
+    nibsize_mm: f32 = 1.0,
+    width: f32 = 2.0,
+    color: []const u8 = "black",
+    scale: f32 = 1.0,
+    signature: struct {
+        enable: bool = false,
+        x: f32 = 0.0,
+        y: f32 = 0.0,
+        scale: f32 = 0.0,
+    } = .{},
+    levels: []const f32 = &.{ 50.0, 100.0, 150.0, 200.0, 250.0 },
+    rounding: bool = false,
+    internal_line_size: f32 = 1.0,
+    max_line_length: f32 = 50.0,
+
+    pub const FilterType = enum {
+        all,
+        sketchy,
+        spiral,
+        crossed,
+    };
+};
+
 pub fn PyModule_Create2() callconv(.C) void {}
 
 pub fn PyArg_ParseTuple() callconv(.C) void {}

@@ -4,6 +4,7 @@ const sketch = @import("sketch.zig");
 const spiral = @import("spiral.zig");
 const crossed = @import("crosshatch.zig");
 const clap = @import("clap");
+const root = @import("root.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -33,19 +34,19 @@ pub fn main() !void {
         \\-m, --maxlinelength <int>  An option parameter, which takes a value.
         \\
     );
-    const Filter = enum {
-        all,
-        sketchy,
-        spiral,
-        crossed,
-    };
+
     const parsers = comptime .{
         .bool = clap.parsers.int(u1, 10),
         .float = clap.parsers.float(f32),
         .str = clap.parsers.string,
         .file = clap.parsers.string,
         .int = clap.parsers.int(usize, 10),
-        .filter = clap.parsers.enumeration(Filter),
+        .filter = clap.parsers.enumeration(root.FilterOptions.FilterType),
+    };
+
+    var opts = root.FilterOptions{
+        .input = undefined,
+        .output = undefined,
     };
 
     var diag = clap.Diagnostic{};
@@ -60,28 +61,28 @@ pub fn main() !void {
 
     if (res.args.help != 0)
         return clap.usage(std.io.getStdErr().writer(), clap.Help, &params);
-    const filter = if (res.args.filter) |f| f else Filter.all;
-    const input = if (res.args.input) |s| s else return error.NoInputFile;
-    const output = if (res.args.output) |s| s else return error.NoOutputFile;
+    opts.filter = if (res.args.filter) |f| f else .all;
+    opts.input = if (res.args.input) |s| s else return error.NoInputFile;
+    opts.output = if (res.args.output) |s| s else return error.NoOutputFile;
 
-    std.debug.print("Filter: {s}\n", .{@tagName(filter)});
+    std.debug.print("Filter: {s}\n", .{@tagName(opts.filter)});
 
     var buf: [1024]u8 = undefined;
     var output_file: []const u8 = undefined;
 
-    if (filter == .all or filter == .sketchy) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "sketch" });
-        try sketch.sketch(input, output_file);
+    if (opts.filter == .all or opts.filter == .sketchy) {
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "sketch" });
+        try sketch.sketch(opts.input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
-    if (filter == .all or filter == .spiral) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "spiral" });
-        try spiral.spiral(input, output_file);
+    if (opts.filter == .all or opts.filter == .spiral) {
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "spiral" });
+        try spiral.spiral(opts.input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
-    if (filter == .all or filter == .crossed) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output, "crossed" });
-        try crossed.crossed(input, output_file);
+    if (opts.filter == .all or opts.filter == .crossed) {
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "crossed" });
+        try crossed.crossed(opts.input, output_file);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
 }

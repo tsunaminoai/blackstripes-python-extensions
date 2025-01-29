@@ -25,19 +25,14 @@ pub fn spiral(opts: FilterOptions) !void {
 
     const width: f32 = @floatFromInt(sketchy.SketchyImage_getCanvasWidth(img));
     const height: f32 = @floatFromInt(sketchy.SketchyImage_getCanvasHeight(img));
-    const color = "black";
-    const nibsize = 1;
-    const scale = 1.0;
-    const sigTransX = 0.0;
-    const sigTransY = 0.0;
-    const sigScale = 0.0;
+    const color = opts.color;
+    const nibsize = opts.nibsize_mm;
+    const scale = opts.scale;
+    const sigTransX = opts.signature.x;
+    const sigTransY = opts.signature.y;
+    const sigScale = opts.signature.scale;
 
-    const level0 = 50;
-    const level1 = 100;
-    const level2 = 150;
-    const level3 = 200;
-
-    sketchy.SketchyImage_setNibSize(img, nibsize);
+    sketchy.SketchyImage_setNibSize(img, @intFromFloat(nibsize));
 
     var svgFile = try std.fs.cwd().createFile(
         output_file,
@@ -46,7 +41,7 @@ pub fn spiral(opts: FilterOptions) !void {
     defer svgFile.close();
     var writer = svgFile.writer();
 
-    const extraHeight = if (sigScale == 0.0) 0 else 100;
+    const extraHeight: f32 = if (sigScale == 0.0) 0 else 100;
     try writer.print(
         svg_formatstring[0 .. svg_formatstring.len - 18],
         .{
@@ -69,7 +64,7 @@ pub fn spiral(opts: FilterOptions) !void {
     var to_x: f32 = 0;
     var to_y: f32 = 0;
 
-    const levels: [4]i16 = .{ level0, level1, level2, level3 };
+    const levels = opts.levels;
 
     var i: usize = 0;
     var radius: f32 = if (roundShapedSpiral) width / 2 else @sqrt((width / 2.0) * (width / 2.0) + (height / 2.0) * (height / 2.0));
@@ -104,7 +99,7 @@ pub fn spiral(opts: FilterOptions) !void {
         else
             sketchy.SketchyImage_getPixel(img, @intFromFloat(x), @intFromFloat(y));
 
-        if (pixelvalue < levels[level_id]) {
+        if (@as(f32, @floatFromInt(pixelvalue)) < levels[level_id]) {
             newstate = 1;
             if (newstate != penstate) {
                 from_x = x;

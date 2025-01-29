@@ -15,16 +15,12 @@ const FilterOptions = root.FilterOptions;
 pub fn crossed(opts: FilterOptions) !void {
     const filename = opts.input;
     const output_file = opts.output;
-    const nibsize = 1;
-    const scale = 1.0;
-    const level0 = 50;
-    const level1 = 100;
-    const level2 = 150;
-    const level3 = 200;
-    const typ = 1;
-    const sigTransX = 0.0;
-    const sigTransY = 0.0;
-    const sigScale = 0.0;
+    const nibsize = opts.nibsize_mm;
+    const scale = opts.scale;
+
+    const sigTransX = opts.signature.x;
+    const sigTransY = opts.signature.y;
+    const sigScale = opts.signature.scale;
 
     const img = sketchy.SketchyImage_allocWithFileName(filename.ptr);
     if (img == null) {
@@ -43,14 +39,14 @@ pub fn crossed(opts: FilterOptions) !void {
     var to_y: f32 = 0;
     var from_x: f32 = 0;
     var from_y: f32 = 0;
-    var threshold: i16 = level0;
+    var threshold = opts.levels[0];
     var newstate: i16 = 1;
     var penstate: i16 = -1;
     var pixelvalue: c_int = 0;
     var layerIndex: usize = 0;
     var radius: f32 = 0.0;
 
-    const levels: [4]i16 = .{ level0, level1, level2, level3 };
+    const levels = opts.levels;
 
     var svgFile = try std.fs.cwd().createFile(
         output_file,
@@ -58,20 +54,23 @@ pub fn crossed(opts: FilterOptions) !void {
     );
     defer svgFile.close();
     var writer = svgFile.writer();
-    const extraHeight = if (sigScale == 0.0) 0 else 100;
+    const extraHeight: f32 = if (sigScale == 0.0) 0 else 100;
     try writer.print(
         svg_formatstring[0 .. svg_formatstring.len - 18],
         .{
             "100%",
             "100%",
             @as(f32, @floatFromInt(width)) * scale,
-            @as(f32, @floatFromInt(height + extraHeight)) * scale,
+            (@as(f32, @floatFromInt(height)) + extraHeight) * scale,
             @as(f32, @floatFromInt(width)) * scale,
-            @as(f32, @floatFromInt(height + extraHeight)) * scale,
+            (@as(f32, @floatFromInt(height)) + extraHeight) * scale,
             scale,
         },
     );
-    const coords = if (typ == 1) coords_large else coords_xlarge;
+    const coords = switch (opts.crossed.size) {
+        .large => coords_large,
+        .xlarge => coords_xlarge,
+    };
     var i: usize = 0;
     while (i < coords.len) : (i += 2) {
         if (coords[i] == -20) {
@@ -94,7 +93,7 @@ pub fn crossed(opts: FilterOptions) !void {
                 @intFromFloat(x),
                 @intFromFloat(y),
             );
-            if (pixelvalue < threshold) {
+            if (@as(f32, @floatFromInt(pixelvalue)) < threshold) {
                 newstate = 1;
                 if (newstate != penstate) {
                     from_x = x;

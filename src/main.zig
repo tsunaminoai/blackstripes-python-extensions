@@ -27,11 +27,11 @@ pub fn main() !void {
         \\-t, --sigtransform <float> <float> <float> An option parameter, which takes a value.
         \\--preview-svg <bool>         An option parameter, which takes a value.
         \\--preview-png <bool>         An option parameter, which takes a value.
-        \\--levels <int>... An option parameter, which takes a value.
+        \\--levels <float>... An option parameter, which takes a value.
         \\--linespacing <int>    An option parameter, which takes a value.
         \\-r, --round  <bool>          An option parameter, which takes a value.
-        \\-S, --internallinesize <int> An option parameter, which takes a value.
-        \\-m, --maxlinelength <int>  An option parameter, which takes a value.
+        \\-S, --internallinesize <float> An option parameter, which takes a value.
+        \\-m, --maxlinelength <float>  An option parameter, which takes a value.
         \\
     );
 
@@ -64,6 +64,26 @@ pub fn main() !void {
     opts.filter = if (res.args.filter) |f| f else .all;
     opts.input = if (res.args.input) |s| s else return error.NoInputFile;
     opts.output = if (res.args.output) |s| s else return error.NoOutputFile;
+    opts.linewidth = if (res.args.linewidth) |f| f else opts.linewidth;
+    opts.nibsize_mm = if (res.args.nibsize) |f| f else opts.nibsize_mm;
+    opts.width = if (res.args.width) |f| f else opts.width;
+    opts.scale = if (res.args.scale) |f| f else opts.scale;
+    opts.signature.x = if (res.args.sigtransform) |f| f else opts.signature.x;
+    opts.signature.y = if (res.args.sigtransform) |f| f else opts.signature.y;
+    opts.signature.scale = if (res.args.sigtransform) |f| f else opts.signature.scale;
+    opts.rounding = if (res.args.round == 1) true else opts.rounding;
+    opts.internal_line_size = if (res.args.internallinesize) |f| f else opts.internal_line_size;
+    opts.max_line_length = if (res.args.maxlinelength) |f| f else opts.max_line_length;
+    var levels: []f32 = undefined;
+    if (res.args.levels.len > 0) {
+        levels = try alloc.alloc(f32, res.args.levels.len);
+        defer alloc.free(levels);
+
+        for (res.args.levels, 0..) |*f, i| {
+            levels[i] = f.*;
+        }
+        opts.levels = levels;
+    }
 
     const output_original = opts.output;
 

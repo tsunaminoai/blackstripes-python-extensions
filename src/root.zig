@@ -8,7 +8,7 @@ pub const FilterOptions = struct {
     output: []const u8,
     linewidth: f32 = 1.0,
     nibsize_mm: f32 = 1.0,
-    width: f32 = 2.0,
+    width: f32 = 1.0,
     color: []const u8 = "black",
     scale: f32 = 1.0,
     signature: struct {
@@ -17,11 +17,24 @@ pub const FilterOptions = struct {
         y: f32 = 0.0,
         scale: f32 = 0.0,
     } = .{},
-    levels: []const f32 = &.{ 50.0, 100.0, 150.0, 200.0, 250.0 },
     rounding: bool = false,
     internal_line_size: f32 = 1.0,
     max_line_length: f32 = 50.0,
+    crossed: struct {
+        size: enum {
+            large,
+            xlarge,
+        } = .large,
+    } = .{},
+    levels: []const f32 = default_levels,
 
+    const default_levels: []const f32 = &.{
+        42.5,
+        85.0,
+        127.5,
+        170.0,
+        212.5,
+    };
     pub const FilterType = enum {
         all,
         sketchy,

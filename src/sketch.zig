@@ -21,17 +21,17 @@ pub fn sketch(opts: FilterOptions) !void {
 
     // std.debug.print("Loaded image {any}\n", .{obj.*.type.*});
 
-    const nibsize = 1;
+    const nibsize = opts.nibsize_mm;
     _ = nibsize; // autofix
-    const linesize = 1;
-    const maxLineLength = 50;
-    const scale = 1.0;
-    const sigTransX = 0.0;
-    const sigTransY = 0.0;
-    const sigScale = 0.0;
-    const color = "black";
+    const linesize = opts.linewidth;
+    const maxLineLength = opts.max_line_length;
+    const scale = opts.scale;
+    const sigTransX = opts.signature.x;
+    const sigTransY = opts.signature.y;
+    const sigScale = opts.signature.scale;
+    const color = opts.color;
 
-    sketchy.SketchyImage_setNibSize(obj, linesize);
+    sketchy.SketchyImage_setNibSize(obj, @intFromFloat(linesize));
     const avg = sketchy.SketchyImage_getAvgBrightness(obj); // 0-255
     var threshold = sketchy.SketchyImage_getBrightness(obj);
     // std.debug.print("Avg Brightness: {}\nThreshold:{}\n", .{ avg, threshold });
@@ -58,7 +58,7 @@ pub fn sketch(opts: FilterOptions) !void {
 
     var writer = svgFile.writer();
 
-    const extraHeight = if (sigScale == 0.0) 0 else 100;
+    const extraHeight: f32 = if (sigScale == 0.0) 0 else 100;
 
     try writer.print(
         svg_formatstring,
@@ -66,9 +66,9 @@ pub fn sketch(opts: FilterOptions) !void {
             "100%",
             "100%",
             @as(f32, @floatFromInt(width)) * scale,
-            @as(f32, @floatFromInt(height + extraHeight)) * scale,
+            (@as(f32, @floatFromInt(height)) + extraHeight) * scale,
             @as(f32, @floatFromInt(width)) * scale,
-            @as(f32, @floatFromInt(height + extraHeight)) * scale,
+            (@as(f32, @floatFromInt(height)) + extraHeight) * scale,
             scale,
         },
     );
@@ -77,7 +77,7 @@ pub fn sketch(opts: FilterOptions) !void {
     var rand = random.random();
 
     while (outputBrightness > threshold) {
-        const r = 10 + @mod(rand.int(i32), maxLineLength);
+        const r = 10 + @mod(rand.int(i32), @as(i32, @intFromFloat(maxLineLength)));
         const p: *sketchy.Point = sketchy.SketchyImage_bestPointOfNDestinationsFromXY2(
             obj,
             r,

@@ -90,6 +90,7 @@ pub fn sketch(opts: FilterOptions) !void {
         x = p.x;
         y = p.y;
     }
+    try writer.writeAll("\" style=\"fill:none;stroke:black;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;\"/>");
 
     var buf: [80_000:0]u8 = undefined;
     @memset(&buf, 0);

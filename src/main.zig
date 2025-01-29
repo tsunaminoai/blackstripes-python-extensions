@@ -65,27 +65,29 @@ pub fn main() !void {
     opts.input = if (res.args.input) |s| s else return error.NoInputFile;
     opts.output = if (res.args.output) |s| s else return error.NoOutputFile;
 
+    const output_original = opts.output;
+
     std.debug.print("Filter: {s}\n", .{@tagName(opts.filter)});
 
     var buf: [1024]u8 = undefined;
     var output_file: []const u8 = undefined;
 
     if (opts.filter == .all or opts.filter == .sketchy) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "sketch" });
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output_original, "sketch" });
         opts.output = output_file;
 
         try sketch.sketch(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (opts.filter == .all or opts.filter == .spiral) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "spiral" });
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output_original, "spiral" });
         opts.output = output_file;
 
         try spiral.spiral(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});
     }
     if (opts.filter == .all or opts.filter == .crossed) {
-        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ opts.output, "crossed" });
+        output_file = try std.fmt.bufPrint(&buf, "{s}-{s}.svg", .{ output_original, "crossed" });
         opts.output = output_file;
         try crossed.crossed(opts);
         std.debug.print("Wrote: {s}\n", .{output_file});

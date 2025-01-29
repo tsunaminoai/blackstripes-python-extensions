@@ -11,6 +11,8 @@ pub fn build(b: *std.Build) !void {
     const allocator = b.allocator;
     _ = allocator; // autofix
 
+    const clap = b.dependency("clap", .{});
+
     const lib_lodepng = b.addSharedLibrary(.{
         .name = "lodepng",
         .target = target,
@@ -89,6 +91,8 @@ pub fn build(b: *std.Build) !void {
     exe.addIncludePath(b.path("./src/lib/lodepng"));
     exe.addIncludePath(b.path("./src/lib/sketchy"));
     exe.addIncludePath(b.path("./src/blackstripes"));
+    exe.root_module.addImport("clap", clap.module("clap"));
+
     b.installArtifact(exe);
 
     const runexe = b.addRunArtifact(exe);

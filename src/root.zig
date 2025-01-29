@@ -67,3 +67,148 @@ pub const svg_formatstring =
     \\<polyline points="
 ;
 pub const signature = "<g transform=\"translate({d:0.2}, {d:0.2}) scale({d:0.2})\"><g transform=\"scale(0.3 0.3)\"><defs><style type=\"text/css\"><![CDATA[.sig {{stroke: {s} }}]]></style></defs><path class=\"sig\" d=\"M69.924,10.776L42.823,252.867C42.823,252.867 52.57,194.932 54.117,154.803C55.663,114.673 39.811,113.148 19.908,113.444C0.004,113.74 124.589,113.444 124.589,113.444C124.589,113.444 89.908,122.899 94.421,82.966C98.934,43.033 101.533,10.776 101.533,10.776L78.377,252.867L88.405,154.803C88.405,154.803 90.436,140.75 118.641,139.843C146.846,138.937 15.204,139.843 15.532,139.843C15.86,139.843 25.342,139.843 25.342,139.843\" fill=\"none\" stroke=\"red\" stroke-width=\"15\" transform=\"translate(200, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M0.5,0.1c0,0 28.35,239.417 43.1,261.2c14.75,21.783 30.483,-130.5 45.4,-130.5c14.917,0 29.45,152.283 44.1,130.5c14.65,-21.783 43.8,-261.2 43.8,-261.2\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(400, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M0.96,262.3l75.3,-251.7c4.35,-12.8 22.45,-12.8 26.79,0l75.3,251.7c0,0 -15.762,-108.242 -38.85,-129.89c-23.088,-21.648 -99.68,0 -99.68,0\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(600, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M5.264,3.677c0,74.899 -10.019,198.896 17.474,239.586c27.493,40.691 147.482,4.557 147.482,4.557\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(800, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M5.264,3.677c0,74.899 -10.019,198.896 17.474,239.586c27.493,40.691 147.482,4.557 147.482,4.557\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(1000, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M12.993,8.183c0,0 -25.381,186.489 0,223.787c25.382,37.298 126.908,37.298 152.289,0c25.381,-37.298 0,-223.787 0,-223.787\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(1200, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M0.4,0.3l176.4,261.2c0,0 -58.5,-130.1 -87.9,-130.1c-29.4,0 -88.5,130.1 -88.5,130.1l176.4,-261.2\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(1400, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"M0.4,0.3l176.4,261.2c0,0 -58.5,-130.1 -87.9,-130.1c-29.4,0 -88.5,130.1 -88.5,130.1l176.4,-261.2\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(1600, 350)\"/></g><g transform=\"scale(0.3 0.3)\"><path class=\"sig\" d=\"\" fill=\"none\" stroke=\"black\" stroke-width=\"15\" transform=\"translate(1800, 350)\"/></g></g>";
+
+pub const SVG = struct {
+    width: f32,
+    height: f32,
+
+    groups: []const Group,
+
+    pub const Path = struct {
+        pub const Type = enum {
+            line,
+            arc,
+            curve,
+        };
+        type: Type,
+        start: Point,
+        end: Point,
+        radius: f32 = 1,
+        direction: i32 = 1,
+        fill: []const u8 = "none",
+        color: []const u8 = "black",
+        stroke_width: f32 = 1.0,
+        stroke_linecap: []const u8 = "round",
+
+        pub fn format(self: Path, comptime fmt: []const u8, options: anytype, writer: anytype) !void {
+            _ = fmt; // autofix
+            _ = options; // autofix
+            switch (self.type) {
+                .line => {
+                    try writer.print("M{} ", .{self.start});
+                    try writer.print("L{} ", .{self.end});
+                },
+                .arc => {
+                    try writer.print("M{} ", .{self.start});
+                    try writer.print("A{} 0 0,{d:0.0} {} ", .{ self.start, self.direction, self.end });
+                },
+                else => return error.UnhandledPathType,
+            }
+        }
+    };
+    pub const PolyPoints = struct {
+        color: []const u8 = "black",
+        size: f32 = 1.0,
+        points: []const Point,
+        pub fn format(self: PolyPoints, comptime fmt: []const u8, options: anytype, writer: anytype) !void {
+            _ = fmt; // autofix
+            _ = options; // autofix
+            try writer.writeAll("<polyline points=\"");
+            for (self.points) |p| try p.format("{}", .{}, writer);
+            try writer.print(
+                "\" style=\"fill:none;stroke:{s};stroke-width:{d:0.2};stroke-linecap:round;stroke-linejoin:round;\" />\n",
+                .{ self.color, self.size },
+            );
+        }
+    };
+    pub const Group = struct {
+        loc: Point = .{},
+        scale: f32 = 1.0,
+        color: []const u8 = "black",
+
+        children: ?union(enum) {
+            poly: []const PolyPoints,
+            paths: []const Path,
+            groups: []const Group,
+        } = null,
+        pub fn format(self: Group, comptime fmt: []const u8, options: anytype, writer: anytype) !void {
+            _ = fmt; // autofix
+            _ = options; // autofix
+            try writer.print(
+                "<g transform=\"translate({});scale({d:0.2})\">\n",
+                .{ self.loc, self.scale },
+            );
+            if (self.children) |cs| {
+                switch (cs) {
+                    .poly => |p| for (p) |poly| try poly.format("{}", .{}, writer),
+                    .paths => |p| for (p) |path| try path.format("{}", .{}, writer),
+                    .groups => |p| for (p) |group| try group.format("{}", .{}, writer),
+                }
+            }
+            try writer.writeAll("</g>\n");
+        }
+    };
+
+    pub const Point = struct {
+        x: i32 = 0,
+        y: i32 = 0,
+        pub fn format(self: Point, comptime fmt: []const u8, options: anytype, writer: anytype) !void {
+            _ = fmt; // autofix
+            _ = options; // autofix
+            try writer.print("{d:0},{d:0} ", .{ self.x, self.y });
+        }
+    };
+
+    pub fn format(self: SVG, comptime fmt: []const u8, options: anytype, writer: anytype) !void {
+        _ = fmt; // autofix
+        _ = options; // autofix
+        const header =
+            \\<?xml version="1.0" encoding="utf-8"?>
+            \\<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> 
+            \\<svg version="1.1"
+            \\ id="Layer_1"
+            \\ xmlns="http://www.w3.org/2000/svg"
+            \\ xmlns:xlink="http://www.w3.org/1999/xlink"
+            \\ x="0px"
+            \\ y="0px"
+            \\ width="{d:0.0}px"
+            \\ height="{d:0.0}px"
+            \\ viewBox="0 0 {d:0.2} {d:0.2}"
+            \\ enable-background="new 0 0 {d:0.2} {d:0.2}"
+            \\ xml:space="preserve">
+            \\
+        ;
+        try writer.print(header, .{ self.width, self.height, self.height, self.height, self.width, self.height });
+        for (self.groups) |group| {
+            try group.format("{}", .{}, writer);
+        }
+        try writer.writeAll("</svg>\n");
+    }
+};
+test {
+    const svg = SVG{
+        .width = 100.0,
+        .height = 100.0,
+        .groups = &[_]SVG.Group{
+            SVG.Group{
+                .loc = .{ .x = 10, .y = 10 },
+                .scale = 1.0,
+                .children = .{
+                    .poly = &.{
+                        .{
+                            .color = "blue",
+                            .size = 3.0,
+                            .points = &[_]SVG.Point{
+                                .{ .x = 0, .y = 0 },
+                                .{ .x = 30, .y = 70 },
+                                .{ .x = 100, .y = 100 },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+    const writer = std.io.getStdOut().writer();
+    try svg.format("{}", .{}, writer);
+}

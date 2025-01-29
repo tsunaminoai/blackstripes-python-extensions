@@ -72,11 +72,29 @@ pub fn crossed(opts: FilterOptions) !void {
         .xlarge => coords_xlarge,
     };
     var i: usize = 0;
+    const diag: i32 = 0;
+    _ = diag; // autofix
+    const max_i = 4276284;
+    _ = max_i; // autofix
+    const max_diag = 9999;
+    _ = max_diag; // autofix
+    const start_radius = 282.0;
+    _ = start_radius; // autofix
+    const end_radius = 99.50;
+    _ = end_radius; // autofix
+
     while (i < coords.len) : (i += 2) {
+        // each value from 1 to 9999 occurs from 2379627x to 84x
+        // this only happens 3 times at indicies out of 4276284
+        // 2444449:-20,
+        // 3055061:-20,
+        // 3665673:-20,
         if (coords[i] == -20) {
             layerIndex += 1;
             threshold = levels[layerIndex];
-        } else if (coords[i] == -10) {
+        } else
+        // beginning with index 1833841, -10 occues every other index
+        if (coords[i] == -10) {
             radius = @as(f32, @floatFromInt(coords[i + 1])) / 10.0;
             newstate = 0;
             if (newstate != penstate) {
@@ -86,6 +104,7 @@ pub fn crossed(opts: FilterOptions) !void {
             }
             penstate = newstate;
         } else {
+            // this is just 0 to 9999
             x = @as(f32, @floatFromInt(coords[i])) / 10.0;
             y = @as(f32, @floatFromInt(coords[i + 1])) / 10.0;
             pixelvalue = sketchy.SketchyImage_getPixel(
